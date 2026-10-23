@@ -1,0 +1,6 @@
+PySide6==6.12.0
+yt-dlp[default,curl-cffi]==2026.10.10.233141.dev0
+curl-cffi==0.16.4b1
+imageio-ffmpeg==0.6.0
+requests==2.34.2
+beautifulsoup4==4.15.0

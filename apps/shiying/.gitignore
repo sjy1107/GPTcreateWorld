@@ -1,0 +1,11 @@
+.venv/
+.tmp/
+__pycache__/
+downloads/
+tests/fixtures/
+tests/output/
+tests/site_outputs/
+*.log
+*cookies*.txt
+*cookies*.json
+.local/

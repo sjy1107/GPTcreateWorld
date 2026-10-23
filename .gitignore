@@ -1,0 +1,41 @@
+# Python 与编辑器
+**/.venv/
+**/venv/
+**/__pycache__/
+*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store
+
+# 本机数据、凭据与下载
+**/.local/
+**/.tmp/
+**/downloads/
+**/.env
+**/.env.*
+*.log
+*.sqlite
+*.sqlite3
+*.db
+*cookies*.txt
+*cookies*.json
+*.pem
+*.key
+*.mp4
+*.webm
+*.mkv
+*.part
+
+# 测试生成物
+**/tests/fixtures/
+**/tests/output/
+**/tests/site_outputs/
+**/tests/*report*.json
+
+# 打包生成物
+**/build/
+**/dist/
+*.egg-info/
