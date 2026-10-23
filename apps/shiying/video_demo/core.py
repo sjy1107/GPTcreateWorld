@@ -59,10 +59,11 @@ class Network:
 
 def js_runtimes() -> dict:
     """Use an installed runtime; never fetch remote solver code automatically."""
+    from .paths import tool_path, frozen
+    deno = tool_path('deno.exe')
+    if deno:
+        return {'deno': {'path': str(deno)}}
     node = os.environ.get("YTDLP_NODE_PATH") or shutil.which("node")
-    bundled = Path.home() / ".cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe"
-    if not node and bundled.is_file():
-        node = str(bundled)
     runtimes = {"deno": {}}
     if node and Path(node).is_file():
         runtimes["node"] = {"path": str(node)}
@@ -70,6 +71,12 @@ def js_runtimes() -> dict:
 
 
 def ffmpeg_path() -> str:
+    from .paths import tool_path, frozen
+    bundled = tool_path('ffmpeg.exe')
+    if bundled:
+        return str(bundled)
+    if frozen():
+        raise RuntimeError('缺少随包视频处理组件，请重新完整解压免安装包。')
     return shutil.which("ffmpeg") or imageio_ffmpeg.get_ffmpeg_exe()
 
 

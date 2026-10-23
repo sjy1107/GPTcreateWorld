@@ -16,19 +16,21 @@ class ProbeFailure(RuntimeError):
 
 def _validate(mode='quick'):
     import yt_dlp
-    from pip._vendor.packaging.requirements import Requirement
+    from packaging.requirements import Requirement
     from .core import Network, PageYoutubeDL, analyze, download, ffmpeg_path, options
     from .format_policy import format_selector
     from .site_compat import DouyinPublicIE
+    from .paths import frozen
+    repair = '请获取包含新组件的新版免安装包；原引擎保留。' if frozen() else '请先安装或更新对应组件；原引擎保留。'
     for text in importlib.metadata.requires('yt-dlp') or []:
         requirement = Requirement(text)
         if any(requirement.marker is None or requirement.marker.evaluate({'extra': extra}) for extra in ('', 'default', 'curl-cffi')):
             try:
                 installed = importlib.metadata.version(requirement.name)
             except importlib.metadata.PackageNotFoundError:
-                raise ProbeFailure(f'缺少新版需要的附加组件 {requirement.name}。请先安装对应组件；原引擎保留。') from None
+                raise ProbeFailure(f'缺少新版需要的附加组件 {requirement.name}。' + repair) from None
             if requirement.specifier and not requirement.specifier.contains(installed, prereleases=True):
-                raise ProbeFailure(f'新版需要 {requirement.name} {requirement.specifier}，当前为 {installed}。请先更新该附加组件；原引擎保留。')
+                raise ProbeFailure(f'新版需要 {requirement.name} {requirement.specifier}，当前为 {installed}。' + repair)
     cancel = threading.Event()
     opts = options(lambda *_: None, cancel)
     opts.update(format=format_selector(360), check_formats=False)
@@ -40,7 +42,7 @@ def _validate(mode='quick'):
         assert [item['format_id'] for item in result['requested_formats']] == ['video', 'audio']
         assert callable(ydl.add_info_extractor) and callable(DouyinPublicIE._parse_aweme_video_app)
     from yt_dlp.version import __version__
-    from pip._vendor.packaging.version import Version
+    from packaging.version import Version
     distribution_version = importlib.metadata.version('yt-dlp')
     if Version(__version__).base_version != Version(distribution_version).base_version:
         raise ProbeFailure('解析引擎代码与版本记录不一致，请重新下载；原环境保留。')

@@ -41,8 +41,10 @@ from .result_notice_dialog import ResultNoticeDialog
 from .system_dialog import SystemDialog, LocalJob
 from .health import environment_checks
 from . import preferences
+from .paths import app_root, frozen
+from .version import VERSION
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = app_root()
 
 
 def install_translation(app):
@@ -368,7 +370,7 @@ class MainWindow(QMainWindow):
         self.batch_failures = []
         self.batch_pending = []
         self.populating = False
-        self.setWindowTitle("拾影 · 视频下载")
+        self.setWindowTitle(f"拾影 {VERSION} · 视频下载" + (' · 免安装版' if frozen() else ''))
         self.resize(1040, 790)
         self.setMinimumSize(880, 650)
         screen = QApplication.primaryScreen()
@@ -400,9 +402,10 @@ class MainWindow(QMainWindow):
         brand = QVBoxLayout()
         brand.setSpacing(1)
         title = QLabel("拾影")
+        title.setToolTip(f'拾影 {VERSION}\nWindows 免安装版' if frozen() else f'拾影 {VERSION}\n源码运行版')
         title.setObjectName("title")
         brand.addWidget(title)
-        brand.addWidget(self.muted("把网页里的视频，保存到电脑。"))
+        brand.addWidget(self.muted(f"v{VERSION} · 把网页里的视频，保存到电脑。"))
         heading.addLayout(brand, 1)
         self.history_button = QPushButton("下载历史")
         self.history_button.clicked.connect(self.show_history)
@@ -2199,6 +2202,11 @@ Cookies 相当于登录凭据，只保存在自己的电脑，不要发给他人
 def main():
     app = QApplication.instance() or QApplication([])
     app.setApplicationName("拾影 · 视频下载器")
+    app.setApplicationVersion(VERSION)
+    from PySide6.QtGui import QIcon
+    icon = ROOT / 'tools/shiying.ico'
+    if icon.is_file():
+        app.setWindowIcon(QIcon(str(icon)))
     app.setFont(QFont("Microsoft YaHei UI", 10))
     app.setStyle("Fusion")
     from .engine_state import EngineError, confirm_start

@@ -13,6 +13,7 @@ from .diagnostics import diagnostic_text
 from .health import environment_checks
 from .transfer import bytes_label
 from .engine_panel import EnginePanel
+from .paths import frozen
 
 LABELS = {'ok': '正常', 'warning': '需注意', 'error': '需处理', 'info': '说明'}
 
@@ -174,7 +175,7 @@ class SystemDialog(QDialog):
             self.status.setText('先在主界面填写保存位置，才能统计该位置的素材和视频。')
             return
         self.begin('inventory', inventory, Path(self.window.folder.text()), preferences.PREFERENCES,
-                   self.window.history.path, self.window.queue_store.path, ROOT / '.local/startup.log',
+                   self.window.history.path, self.window.queue_store.path, ROOT / ('data' if frozen() else '.local') / 'startup.log',
                    has_session=self.window.browser_session is not None, cookie_path=self.window.cookies.text(),
                    log_lines=self.window.log.document().blockCount() if self.window.log.toPlainText() else 0)
 
@@ -316,7 +317,7 @@ class SystemDialog(QDialog):
         elif item.key == 'preferences':
             self.begin('preferences', clear_record_file, preferences.PREFERENCES)
         elif item.key == 'startup_log':
-            self.begin('startup_log', clear_record_file, ROOT / '.local/startup.log')
+            self.begin('startup_log', clear_record_file, ROOT / ('data' if frozen() else '.local') / 'startup.log')
 
     def copy_checks(self):
         text = '拾影 · 本机环境检查摘要\n' + '\n'.join(item.title + '：' + LABELS[item.state] + ' · ' + item.summary for item in self.window.health_results)

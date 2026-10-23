@@ -7,9 +7,10 @@ import re
 import subprocess
 import sys
 import uuid
+from .paths import app_root, data_root, frozen
 
-PROJECT = Path(__file__).resolve().parent.parent
-ENGINE_ROOT = PROJECT / '.local/engine'
+PROJECT = app_root()
+ENGINE_ROOT = data_root() / 'engine'
 SLOT = re.compile(r'v-[A-Za-z0-9._-]{1,80}-[0-9a-f]{12}')
 OWNER = 'shiying-engine-v1'
 _LEASES = {}
@@ -164,7 +165,14 @@ def probe(slot, *, full=False):
                'from video_demo.engine_probe import main; main(sys.argv[3])')
     env = dict(os.environ, YTDLP_NO_PLUGINS='1', PYTHONUTF8='1', NO_PROXY='127.0.0.1,localhost')
     try:
-        result = subprocess.run([sys.executable, '-I', '-c', command, str(PROJECT), str(slot or ''), 'full' if full else 'quick'],
+        if frozen():
+            worker = PROJECT / '_internal/ShiyingWorker.exe'
+            if not worker.is_file():
+                raise EngineError('缺少后台验证程序，请完整解压免安装包后重试。')
+            args = [str(worker), '--engine-probe', str(slot or ''), 'full' if full else 'quick']
+        else:
+            args = [sys.executable, '-I', '-c', command, str(PROJECT), str(slot or ''), 'full' if full else 'quick']
+        result = subprocess.run(args,
                                 capture_output=True, timeout=100 if full else 25, env=env,
                                 creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
     except subprocess.TimeoutExpired:

@@ -1,8 +1,12 @@
-# 拾影 · 视频下载器
+# 拾影 0.1.0 · 视频下载器
 
 **粘贴网页地址，选好视频与清晰度，把内容保存为本地 MP4。**
 
-拾影是一款使用 Python 开发的中文桌面工具，结合 PySide6 图形界面、yt-dlp 网站解析和 FFmpeg 视频处理，让常见下载操作可以在窗口中完成。主要面向 Windows，当前提供可运行的源码演示版，尚未打包成独立安装程序。
+拾影是一款使用 Python 开发的中文桌面工具，结合 PySide6 图形界面、yt-dlp 网站解析和 FFmpeg 视频处理，让常见下载操作可以在窗口中完成。主要面向 Windows，提供源码与 Windows x64 免安装包。
+
+**直接使用：[前往 GitHub Releases 下载 Windows 免安装版](https://github.com/sjy1107/GPTcreateWorld/releases)。** 选择名称包含 `Windows-x64-Portable.zip` 的附件，完整解压后进入 `Shiying` 文件夹，双击“拾影.exe”，无需安装 Python。详细步骤见[下载与启动说明](DOWNLOAD.md)。
+
+当前没有 Windows 代码签名证书，程序未签名，部分电脑可能拦截。0.1.0 已修复打包时混入不兼容 ICU DLL 导致的启动错误：296 项源码测试通过，并在没有外部 Python、FFmpeg 或 Deno 的 PATH 下，通过真实 EXE 的界面启动、四格式本地资源下载与 MP4 完整解码、后台引擎验证。尚未在另一台 Windows 10 电脑验收。GitHub 自动提供的 **Source code** 和 **Code → Download ZIP** 是源码，需要自行准备 Python 环境。
 
 ![拾影主界面示例](docs/ui-result-notices.png)
 
@@ -126,7 +130,7 @@ http://127.0.0.1:8765/index.html
 .\.venv\Scripts\python.exe -m tests.integration_demo
 ```
 
-最近一轮原项目完整回归共有 **287 项通过**。覆盖解析、画质、真实本机下载和 MP4 处理、续传、存储、历史、Cookies 范围、错误提示、Qt 界面、引擎更新与恢复。测试使用合成素材和本机 HTTP 服务，不依赖外部视频网站的稳定性，也不读取真实账号资料。运行时请让 `localhost` / `127.0.0.1` 直连。
+0.1.0 完整源码回归共有 **296 项通过**。覆盖解析、画质、真实本机下载和 MP4 处理、续传、存储、历史、Cookies 范围、错误提示、Qt 界面、引擎更新与恢复，以及便携路径和文件夹移动。测试使用合成素材和本机 HTTP 服务，不依赖外部视频网站的稳定性，也不读取真实账号资料。运行时请让 `localhost` / `127.0.0.1` 直连。真实冻结 EXE 的启动、四格式本地下载与 MP4 完整解码、后台 worker 验证通过；打包更新另有 5 项保留数据测试。本轮成品验证未覆盖外站可用性或引擎联网更新与恢复全流程。
 
 ```text
 main.py             启动入口

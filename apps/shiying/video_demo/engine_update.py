@@ -31,8 +31,8 @@ class Candidate:
 
 
 def versions():
-    from pip._vendor.packaging.version import Version, InvalidVersion
-    from pip._vendor.packaging.specifiers import SpecifierSet
+    from packaging.version import Version, InvalidVersion
+    from packaging.specifiers import SpecifierSet
     return Version, InvalidVersion, SpecifierSet
 
 

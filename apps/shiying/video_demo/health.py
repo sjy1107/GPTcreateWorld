@@ -72,7 +72,7 @@ def runtime_check():
         deno_minimum, node_minimum = (2, 3, 0), (22, 0, 0)
     candidates = js_runtimes()
     node = candidates.get('node', {}).get('path')
-    deno = shutil.which('deno')
+    deno = candidates.get('deno', {}).get('path') or shutil.which('deno')
     for name, executable, minimum in (('Deno', deno, deno_minimum), ('Node.js', node, node_minimum)):
         if not executable:
             continue
@@ -92,6 +92,7 @@ def runtime_check():
 
 def environment_checks(folder, preferences, history, queue, *, ffmpeg=None):
     from .core import ffmpeg_path
+    from .paths import frozen
     from .queue_store import QueueStore
     checks = [Check('python', 'Python 运行环境', 'ok' if sys.version_info[:2] >= (3, 12) else 'error',
                     sys.version.split()[0], '当前解释器：' + sys.executable + '\n本项目使用 Python 3.12 验证。')]
@@ -103,7 +104,7 @@ def environment_checks(folder, preferences, history, queue, *, ffmpeg=None):
             checks.append(Check(name, title, 'ok', version, '组件版本：' + version + '\n这里只检查本机安装情况，不查询更新。'))
         except importlib.metadata.PackageNotFoundError:
             checks.append(Check(name, title, 'warning' if name in ('curl-cffi', 'yt-dlp-ejs') else 'error', '未检测到组件',
-                                '请从 start.bat 启动；如果仍缺失，可使用项目解释器安装 requirements.txt 中的依赖。'))
+                                '请重新下载并完整解压免安装包，保留原 data 和视频。' if frozen() else '请从 start.bat 启动；如果仍缺失，可使用项目解释器安装 requirements.txt 中的依赖。'))
     try:
         executable = ffmpeg or ffmpeg_path()
         result = run_program([str(executable), '-version'])
@@ -121,7 +122,7 @@ def environment_checks(folder, preferences, history, queue, *, ffmpeg=None):
                             + ('已检测到 H.264 与 AAC 输出编码。' if complete else '部分原格式视频可能仍可保存；需要转换编码的视频可能失败，请准备包含 libx264 / AAC 的 FFmpeg。')))
     except (OSError, RuntimeError, subprocess.TimeoutExpired, IndexError):
         checks.append(Check('ffmpeg', 'MP4 视频处理', 'error', '处理组件无法运行',
-                            '当前不能可靠整理 MP4。先从 start.bat 重启；若仍失败，检查系统 FFmpeg 是否损坏，或重新安装项目的 imageio-ffmpeg 组件，然后点击“重新检查”。'))
+                            '当前不能可靠整理 MP4。请完整解压免安装包，确认 tools 文件夹中的视频处理组件保留，然后重新检查。' if frozen() else '当前不能可靠整理 MP4。先从 start.bat 重启；若仍失败，检查系统 FFmpeg 是否损坏，或重新安装项目的 imageio-ffmpeg 组件，然后点击“重新检查”。'))
     checks.append(runtime_check())
     try:
         if not str(folder).strip():

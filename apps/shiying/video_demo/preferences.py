@@ -4,8 +4,9 @@ import os
 import tempfile
 from pathlib import Path
 from .local_storage import replace_record
+from .paths import data_root, decode_path, encode_path
 
-PREFERENCES = Path(__file__).resolve().parent.parent / ".local" / "preferences.json"
+PREFERENCES = data_root() / "preferences.json"
 MAX_BYTES = 256 * 1024
 
 
@@ -16,7 +17,7 @@ def load_folder(default: Path) -> str:
         if len(raw) > MAX_BYTES:
             return str(default)
         value = json.loads(raw).get("folder")
-        return value if isinstance(value, str) and value.strip() and len(value) <= 32768 and "\x00" not in value else str(default)
+        return decode_path(value) if isinstance(value, str) and value.strip() and len(value) <= 32768 and "\x00" not in value else str(default)
     except (OSError, ValueError, AttributeError, RecursionError):
         return str(default)
 
@@ -31,7 +32,7 @@ def save_folder(folder: Path):
         with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=PREFERENCES.parent,
                                          prefix=".preferences-", suffix=".tmp", delete=False) as target:
             temp_path = Path(target.name)
-            json.dump({"folder": text}, target, ensure_ascii=False)
+            json.dump({"folder": encode_path(text)}, target, ensure_ascii=False)
             target.flush()
             os.fsync(target.fileno())
         replace_record(temp_path, PREFERENCES)

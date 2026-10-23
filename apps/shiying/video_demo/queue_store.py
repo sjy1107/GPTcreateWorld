@@ -11,8 +11,9 @@ from .errors import explain_error
 from .history import video_identity
 from .naming import NAMING_MODES
 from .local_storage import replace_record
+from .paths import data_root, encode_path, decode_path
 
-DEFAULT_QUEUE = Path(__file__).resolve().parent.parent / ".local/queue.json"
+DEFAULT_QUEUE = data_root() / 'queue.json'
 MAX_QUEUE_BYTES = 1024 * 1024
 
 
@@ -63,7 +64,7 @@ class QueueStore:
                 mode = data.get("naming_mode", "title_quality")
                 if mode not in NAMING_MODES:
                     raise ValueError
-                self.snapshot = {"folder": data["folder"], "items": validate_items(data.get("items")), "naming_mode": mode}
+                self.snapshot = {"folder": decode_path(data["folder"]), "items": validate_items(data.get("items")), "naming_mode": mode}
                 self.enabled = True
         except (OSError, ValueError, TypeError, AttributeError, RecursionError):
             self.load_error = True
@@ -78,7 +79,7 @@ class QueueStore:
             raise ValueError("保存位置过长，无法记住队列。")
         if snapshot == self.snapshot and self.path.is_file() and not self.load_error:
             return
-        data = {"version": 1, "enabled": True, **snapshot}
+        data = {"version": 1, "enabled": True, **snapshot, 'folder': encode_path(snapshot['folder'])}
         content = json.dumps(data, ensure_ascii=False)
         if len(content.encode("utf-8")) > MAX_QUEUE_BYTES:
             raise ValueError("队列记录过大，请减少链接或缩短分享网址后再记住队列。")

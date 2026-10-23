@@ -58,6 +58,17 @@ class BootstrapTests(unittest.TestCase):
             self.assertIn('RuntimeError', message)
             self.assertNotIn('private_url_or_cookie_secret', message)
 
+    def test_import_diagnostics_keep_component_and_frames_without_arbitrary_secrets(self):
+        try:
+            raise ImportError('DLL load failed while importing QtWidgets: 找不到指定的程序。', name='QtWidgets')
+        except ImportError as error:
+            detail = bootstrap.failure_details(error)
+        self.assertIn('QtWidgets', detail)
+        self.assertIn('找不到指定的程序', detail)
+        self.assertIn('test_system_management.py', detail)
+        self.assertNotIn('private_cookie_secret', bootstrap.failure_details(ImportError('private_cookie_secret')))
+        self.assertNotIn('private_cookie_secret', bootstrap.failure_details(RuntimeError('private_cookie_secret')))
+
 
 class HealthTests(unittest.TestCase):
     def test_script_runtime_checks_full_upstream_version_not_only_major(self):

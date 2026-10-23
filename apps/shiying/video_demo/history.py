@@ -9,8 +9,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from .browser_cookies import site_scope
+from .paths import data_root, encode_path, decode_path
 
-DEFAULT_HISTORY = Path(__file__).resolve().parent.parent / ".local/history.sqlite3"
+DEFAULT_HISTORY = data_root() / 'history.sqlite3'
 
 
 def file_signature(status):
@@ -130,7 +131,7 @@ class HistoryStore:
         fingerprint, signature = sampled_fingerprint(path)
         with closing(self.connect()) as db, db:
             db.execute("INSERT INTO downloads(identity,title,path,quality,size,finished,fingerprint) VALUES(?,?,?,?,?,?,?)",
-                       (video_identity(video), video.title, str(path), quality or 0, signature[2],
+                       (video_identity(video), video.title, encode_path(path), quality or 0, signature[2],
                         datetime.now(timezone.utc).isoformat(), fingerprint))
             db.execute("DELETE FROM downloads WHERE id NOT IN (SELECT id FROM downloads ORDER BY id DESC LIMIT 500)")
 
@@ -138,7 +139,13 @@ class HistoryStore:
         if not self.path.exists():
             return []
         with closing(self.connect()) as db:
-            return [dict(row) for row in db.execute("SELECT * FROM downloads ORDER BY id DESC LIMIT 500")]
+            records = [dict(row) for row in db.execute("SELECT * FROM downloads ORDER BY id DESC LIMIT 500")]
+            for record in records:
+                stored = record['path']
+                record['path'] = decode_path(stored)
+                if stored != record['path']:
+                    record['_stored_path'] = stored
+            return records
 
     def find(self, video, quality):
         return self.find_many([(0, video, quality)]).get(0)
@@ -185,7 +192,7 @@ class HistoryStore:
             raise ValueError('确认期间文件发生了变化，未更新记录，请重新检查。')
         with closing(self.connect()) as db, db:
             cursor = db.execute('UPDATE downloads SET path=?, fingerprint=? WHERE id=? AND path=? AND size=? AND fingerprint IS ?',
-                                (str(candidate.path), candidate.fingerprint, record['id'], record['path'],
+                                (encode_path(candidate.path), candidate.fingerprint, record['id'], record.get('_stored_path', record['path']),
                                  record['size'], record.get('fingerprint')))
             if cursor.rowcount != 1:
                 raise ValueError('这条历史记录已被修改或移除，请刷新列表后重试。')
